@@ -1,9 +1,9 @@
-name: Execute SSH Commands on Multiple Servers
+name: SSH Servers
 
 on:
   workflow_dispatch:  # 手动触发工作流
   schedule:
-    - cron: "30 1,13 * * *"  # 每天的 1:30 和 13:30 自动执行
+    - cron: "15 5 1 * *"  #每个月5点15分运行
 
 jobs:
   execute-commands:
@@ -31,8 +31,8 @@ jobs:
             ssh=$(echo "$account" | jq -r '.ssh')
             
             # 生成 SSH 连接命令
-            echo "echo \"Executing for $username@$ssh\"" >> sshpass.sh
-            echo "sshpass -p '$password' ssh -o StrictHostKeyChecking=no '$username@$ssh' 'echo Hello from GitHub Actions'" >> sshpass.sh
+            echo "echo \"链接： $username@$ssh\"" >> sshpass.sh
+            echo "sshpass -p '$password' ssh -o StrictHostKeyChecking=no '$username@$ssh' 'echo 使用GitHub Actions登录成功'" >> sshpass.sh
           done < <(jq -c '.[]' accounts.json)
           chmod +x sshpass.sh
 
