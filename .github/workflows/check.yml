@@ -8,7 +8,6 @@ on:
 jobs:
   execute-commands:
     runs-on: ubuntu-latest
-
     steps:
       - name: Set up SSH and SSHPass
         run: |
@@ -25,23 +24,16 @@ jobs:
       - name: Generate SSH Commands
         id: generate-ssh-commands
         run: |
-          # 创建一个执行 SSH 命令的脚本
           echo "#!/bin/bash" > sshpass.sh
-          
-          # 读取 accounts.json 中的每个账户信息
           while IFS= read -r account; do
-            username=$(echo "$account" | jq -r '.username')  # 从 JSON 中获取用户名
-            password=$(echo "$account" | jq -r '.password')  # 从 JSON 中获取密码
-            ssh=$(echo "$account" | jq -r '.ssh')  # 从 JSON 中获取 SSH 地址
-
-            # 输出执行过程信息
+            username=$(echo "$account" | jq -r '.username')
+            password=$(echo "$account" | jq -r '.password')
+            ssh=$(echo "$account" | jq -r '.ssh')
+            
+            # 生成 SSH 连接命令
             echo "echo \"Executing for $username@$ssh\"" >> sshpass.sh
-
-            # 通过 sshpass 执行 SSH 命令
-            echo "sshpass -p '$password' ssh -o StrictHostKeyChecking=no '$username@$ssh' 'your_command_here'" >> sshpass.sh
+            echo "sshpass -p '$password' ssh -o StrictHostKeyChecking=no '$username@$ssh' 'echo Hello from GitHub Actions'" >> sshpass.sh
           done < <(jq -c '.[]' accounts.json)
-          
-          # 给脚本执行权限
           chmod +x sshpass.sh
 
       - name: Execute SSH Commands
