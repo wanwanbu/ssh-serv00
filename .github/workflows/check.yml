@@ -3,7 +3,7 @@ name: SSH Servers
 on:
   workflow_dispatch:  # 手动触发工作流
   schedule:
-    - cron: "15 5 1 * *"  #每月 1 日的凌晨 5:15 执行
+    - cron: "15 5 1 * *"  # 每月1日5点15分执行
 
 jobs:
   execute-commands:
@@ -12,7 +12,7 @@ jobs:
       - name: Set up SSH and SSHPass
         run: |
           sudo apt-get update
-          sudo apt-get install -y sshpass
+          sudo apt-get install -y sshpass jq  # 安装 sshpass 和 jq
 
       - name: Get ACCOUNTS_JSON from Secrets
         id: get-accounts
@@ -29,14 +29,14 @@ jobs:
             username=$(echo "$account" | jq -r '.username')
             password=$(echo "$account" | jq -r '.password')
             ssh=$(echo "$account" | jq -r '.ssh')
+
+            # 打印链接信息
+            echo "echo \"链接： $username@$ssh\"" >> sshpass.sh
             
             # 生成 SSH 连接命令
-            echo "echo \"链接： $username@$ssh\"" >> sshpass.sh
-            echo "sshpass -p '$password' ssh -o StrictHostKeyChecking=no '$username@$ssh' 'bash <(curl -s https://raw.githubusercontent.com/wanwanbu/ssh-serv00/refs/heads/main/crtest.sh)
-'" >> sshpass.sh
-
+            echo "sshpass -p '$password' ssh -o StrictHostKeyChecking=no '$username@$ssh' 'bash <(curl -s https://raw.githubusercontent.com/wanwanbu/ssh-serv00/refs/heads/main/crtest.sh)'" >> sshpass.sh
           done < <(jq -c '.[]' accounts.json)
-          chmod +x sshpass.sh
+          chmod +x sshpass.sh  # 授予脚本执行权限
 
       - name: Execute SSH Commands
         run: ./sshpass.sh
