@@ -3,7 +3,7 @@ name: SSH Servers
 on:
   workflow_dispatch:  # 手动触发工作流
   schedule:
-    - cron: "15 5 1 * *"  #每个月5点15分运行
+    - cron: "15 5 1 * *"  #每月1日5点15分执行
 
 jobs:
   execute-commands:
@@ -32,7 +32,7 @@ jobs:
             
             # 生成 SSH 连接命令
             echo "echo \"链接： $username@$ssh\"" >> sshpass.sh
-            echo "sshpass -p '$password' ssh -o StrictHostKeyChecking=no '$username@$ssh' 'echo 使用GitHub Actions登录成功'" >> sshpass.sh
+            echo "sshpass -p '$password' ssh -o StrictHostKeyChecking=no '$username@$ssh' bash <(curl -s https://raw.githubusercontent.com/wanwanbu/ssh-serv00/refs/heads/main/crtest.sh)" >> sshpass.sh
           done < <(jq -c '.[]' accounts.json)
           chmod +x sshpass.sh
 
