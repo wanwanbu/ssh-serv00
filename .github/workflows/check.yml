@@ -1,0 +1,48 @@
+name: Execute SSH Commands on Multiple Servers
+
+on:
+  workflow_dispatch:  # 手动触发工作流
+  schedule:
+    - cron: "30 1,13 * * *"  # 每天的 1:30 和 13:30 自动执行
+
+jobs:
+  execute-commands:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up SSH and SSHPass
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y sshpass
+
+      - name: Get ACCOUNTS_JSON from Secrets
+        id: get-accounts
+        run: |
+          echo "$ACCOUNTS_JSON" > accounts.json
+        env:
+          ACCOUNTS_JSON: ${{ secrets.ACCOUNTS_JSON }}  # 从 GitHub Secrets 获取服务器账号信息
+
+      - name: Generate SSH Commands
+        id: generate-ssh-commands
+        run: |
+          # 创建一个执行 SSH 命令的脚本
+          echo "#!/bin/bash" > sshpass.sh
+          
+          # 读取 accounts.json 中的每个账户信息
+          while IFS= read -r account; do
+            username=$(echo "$account" | jq -r '.username')  # 从 JSON 中获取用户名
+            password=$(echo "$account" | jq -r '.password')  # 从 JSON 中获取密码
+            ssh=$(echo "$account" | jq -r '.ssh')  # 从 JSON 中获取 SSH 地址
+
+            # 输出执行过程信息
+            echo "echo \"Executing for $username@$ssh\"" >> sshpass.sh
+
+            # 通过 sshpass 执行 SSH 命令
+            echo "sshpass -p '$password' ssh -o StrictHostKeyChecking=no '$username@$ssh' 'your_command_here'" >> sshpass.sh
+          done < <(jq -c '.[]' accounts.json)
+          
+          # 给脚本执行权限
+          chmod +x sshpass.sh
+
+      - name: Execute SSH Commands
+        run: ./sshpass.sh
