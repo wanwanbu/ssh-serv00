@@ -32,7 +32,7 @@ jobs:
             
             # 生成 SSH 连接命令
             echo "echo \"链接： $username@$ssh\"" >> sshpass.sh
-            echo "sshpass -p '$password' ssh -o StrictHostKeyChecking=no '$username@$ssh' bash <(curl -s https://raw.githubusercontent.com/wanwanbu/ssh-serv00/refs/heads/main/crtest.sh)" >> sshpass.sh
+            echo "sshpass -p '$password' ssh -o StrictHostKeyChecking=no '$username@$ssh' 'bash <(curl -s https://raw.githubusercontent.com/wanwanbu/ssh-serv00/refs/heads/main/crtest.sh)'" >> sshpass.sh
           done < <(jq -c '.[]' accounts.json)
           chmod +x sshpass.sh
 
